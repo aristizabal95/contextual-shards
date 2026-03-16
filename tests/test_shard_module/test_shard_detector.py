@@ -1,4 +1,3 @@
-import pytest
 from src.shard_module.detection.shard_detector import ShardDetector
 from src.shard_module.metrics.shard_metrics import ShardMetrics
 
