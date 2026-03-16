@@ -29,8 +29,8 @@ def test_register_agent_decorator():
     assert AgentFactory("mock_agent_test") is MockAgent
 
 
-def test_impala_agent_raises_without_procgen_tools():
-    """ImpalaAgent.load() raises ImportError when procgen-tools not installed."""
+def test_impala_agent_raises_on_bad_checkpoint():
+    """ImpalaAgent.load() raises OSError when checkpoint file doesn't exist."""
     cls = AgentFactory("impala")
 
     class FakeCfg:
@@ -39,8 +39,8 @@ def test_impala_agent_raises_without_procgen_tools():
             layer_names = ["block1", "fc"]
 
     agent = cls(FakeCfg())  # No checkpoint -> no load call
-    with pytest.raises(ImportError):
-        agent.load("fake_checkpoint.pt")
+    with pytest.raises(OSError):
+        agent.load("nonexistent_checkpoint_path.pt")
 
 
 def test_activation_recorder_captures_layers():

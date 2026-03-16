@@ -30,16 +30,21 @@ class ImpalaAgent(BaseAgent):
         if checkpoint_path:
             self.load(checkpoint_path)
 
-    def load(self, checkpoint_path: str) -> None:
-        """Load IMPALA model from checkpoint."""
+    def load(self, checkpoint_path: str, action_size: int = 15) -> None:
+        """Load IMPALA model from checkpoint.
+
+        Args:
+            checkpoint_path: Path to .pth checkpoint file.
+            action_size: Number of actions (15 for procgen maze).
+        """
         try:
             from procgen_tools.models import load_policy  # type: ignore[import]
         except ImportError as e:
             raise ImportError(
-                "procgen-tools not installed. ImpalaAgent requires Python 3.10 env."
+                "procgen-tools not installed. ImpalaAgent requires procgen-tools."
             ) from e
 
-        self._model = load_policy(checkpoint_path, device=self._device)
+        self._model = load_policy(checkpoint_path, action_size, self._device)
         assert self._model is not None
         self._model.eval()
 
