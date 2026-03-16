@@ -89,7 +89,7 @@ class ActivationPatcher:
             target = named[layer_name]
 
         hook = target.register_forward_hook(
-            lambda module, inp, out: patch_fn(out)
+            lambda _module, _inp, out: patch_fn(out)
         )
         try:
             yield

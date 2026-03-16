@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from src.probe_module import ProbeFactory
 from src.probe_module.evaluator.probe_evaluator import ProbeEvaluator
+from src.probe_module.probe.mdl_probe import MDLProbe
 
 
 def _make_separable_data(n: int = 200, d: int = 16):
@@ -49,7 +50,7 @@ def test_mdl_probe_factory():
 
 
 def test_mdl_probe_fits_and_has_codelength():
-    probe = ProbeFactory("mdl")()
+    probe = MDLProbe()
     X, y = _make_separable_data()
     probe.fit(X, y)
     assert probe.codelength < float("inf")
