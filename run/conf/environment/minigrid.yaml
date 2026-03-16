@@ -1,0 +1,4 @@
+name: minigrid
+env_id: MiniGrid-FourRooms-v0
+seed: 0
+max_steps: 300

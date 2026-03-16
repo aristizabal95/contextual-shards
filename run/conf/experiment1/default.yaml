@@ -1,0 +1,8 @@
+probe_type: linear
+n_trials: 5
+context_threshold: 0.5
+causal_n_trials: 100
+near_threshold: 5
+concepts:
+  - cheese_presence
+  - corner_proximity

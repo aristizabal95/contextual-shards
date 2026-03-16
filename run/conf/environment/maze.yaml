@@ -1,0 +1,4 @@
+name: maze
+num_levels: 500
+seed: 0
+distribution_mode: easy
