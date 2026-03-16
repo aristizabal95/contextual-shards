@@ -1,0 +1,7 @@
+sae_path: outputs/checkpoints/sae.pt
+target_layer: fc
+top_k_features: 10
+r_threshold: 0.7   # Pearson r threshold for SAE-probe convergence (target per plan)
+concepts:
+  - cheese_presence
+  - corner_proximity

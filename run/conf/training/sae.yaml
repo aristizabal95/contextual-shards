@@ -1,0 +1,8 @@
+d_input: 256        # IMPALA fc layer dimension
+expansion_factor: 8  # d_hidden = 256 * 8 = 2048 features
+l1_coef: 0.01
+lr: 0.0001
+n_epochs: 10
+batch_size: 512
+target_layer: fc
+output_path: outputs/checkpoints/sae.pt
