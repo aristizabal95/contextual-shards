@@ -18,10 +18,10 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 LAYER_NAMES = [
-    "block1", "block1.res1", "block1.res2",
-    "block2", "block2.res1", "block2.res2",
-    "block3", "block3.res1", "block3.res2",
-    "fc",
+    "embedder.block1", "embedder.block1.res1", "embedder.block1.res2",
+    "embedder.block2", "embedder.block2.res1", "embedder.block2.res2",
+    "embedder.block3", "embedder.block3.res1", "embedder.block3.res2",
+    "embedder.fc",
 ]
 
 

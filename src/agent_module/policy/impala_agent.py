@@ -46,16 +46,22 @@ class ImpalaAgent(BaseAgent):
 
         self._model = load_policy(checkpoint_path, action_size, self._device)
         assert self._model is not None
+        self._model.to(self._device)
         self._model.eval()
 
     def act(self, obs: np.ndarray) -> int:
-        """Select greedy action given observation."""
+        """Select greedy action given observation.
+
+        obs: (C, H, W) float array — batch dim added internally.
+        The IMPALA model (CategoricalPolicy) returns (Categorical dist, value).
+        """
         if self._model is None:
             raise RuntimeError("Model not loaded. Call load() first.")
         with torch.no_grad():
+            # create_venv returns float64; model expects float32
             obs_t = torch.from_numpy(obs).float().unsqueeze(0).to(self._device)
-            logits = self._model(obs_t)["pi_logits"]
-            return int(logits.argmax(dim=-1).item())
+            dist, _value = self._model(obs_t)
+            return int(dist.logits.argmax(dim=-1).item())
 
     @property
     def model(self) -> Optional[nn.Module]:
