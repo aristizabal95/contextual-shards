@@ -10,9 +10,9 @@ class CornerProximityLabeler(BaseConceptLabeler):
     def label(
         self,
         agent_pos: Tuple[int, int],
-        cheese_pos: Tuple[int, int],
+        cheese_pos: Tuple[int, int],  # noqa: ARG002
         maze_grid: np.ndarray,
     ) -> float:
-        h, w = maze_grid.shape
+        w = maze_grid.shape[1]
         corner = (0, w - 1)
         return float(np.sqrt((agent_pos[0] - corner[0])**2 + (agent_pos[1] - corner[1])**2))

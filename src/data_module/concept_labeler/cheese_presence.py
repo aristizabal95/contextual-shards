@@ -14,7 +14,7 @@ class CheesePresenceLabeler(BaseConceptLabeler):
         self,
         agent_pos: Tuple[int, int],
         cheese_pos: Tuple[int, int],
-        maze_grid: np.ndarray,
+        maze_grid: np.ndarray,  # noqa: ARG002
     ) -> float:
         dist = np.sqrt((agent_pos[0] - cheese_pos[0])**2 + (agent_pos[1] - cheese_pos[1])**2)
         return 1.0 if dist <= self.threshold else 0.0

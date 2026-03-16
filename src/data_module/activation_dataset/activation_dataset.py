@@ -1,6 +1,6 @@
 import h5py
 import numpy as np
-from typing import Dict, Any, Optional
+from typing import Any, Dict
 from torch.utils.data import Dataset
 
 
@@ -86,5 +86,5 @@ class HDF5ActivationDataset(Dataset):
     def __enter__(self):
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *_args: object) -> None:
         self.close()

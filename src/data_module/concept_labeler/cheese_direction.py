@@ -11,7 +11,7 @@ class CheeseDirectionLabeler(BaseConceptLabeler):
         self,
         agent_pos: Tuple[int, int],
         cheese_pos: Tuple[int, int],
-        maze_grid: np.ndarray,
+        maze_grid: np.ndarray,  # noqa: ARG002
     ) -> float:
         dy = cheese_pos[0] - agent_pos[0]
         dx = cheese_pos[1] - agent_pos[1]
