@@ -1,0 +1,20 @@
+# Experiment 3: Reinforcement Distribution (D4)
+# Train three agents with different cheese placement distributions.
+agents:
+  corner_biased:
+    cheese_mode: corner_biased
+    corner_frequency: 0.75
+    output_path: outputs/checkpoints/agent_corner_biased.pt
+  uniform:
+    cheese_mode: uniform
+    corner_frequency: 0.25
+    output_path: outputs/checkpoints/agent_uniform.pt
+  anti_corner:
+    cheese_mode: anti_corner
+    corner_frequency: 0.10
+    output_path: outputs/checkpoints/agent_anti_corner.pt
+
+total_timesteps: 5000000
+grid_size: 15
+seed: 42
+n_envs: 64

@@ -1,0 +1,6 @@
+cheese_mode: uniform
+grid_size: 15
+total_timesteps: 5000000
+seed: 42
+n_envs: 64
+output_path: outputs/checkpoints/agent.pt
