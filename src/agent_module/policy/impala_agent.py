@@ -49,6 +49,15 @@ class ImpalaAgent(BaseAgent):
         self._model.to(self._device)
         self._model.eval()
 
+    def action_probs(self, obs: np.ndarray) -> np.ndarray:
+        """Return action probability distribution for a single observation."""
+        if self._model is None:
+            raise RuntimeError("Model not loaded. Call load() first.")
+        with torch.no_grad():
+            obs_t = torch.from_numpy(obs).float().unsqueeze(0).to(self._device)
+            dist, _value = self._model(obs_t)
+            return dist.probs[0].cpu().numpy()
+
     def act(self, obs: np.ndarray) -> int:
         """Select greedy action given observation.
 
