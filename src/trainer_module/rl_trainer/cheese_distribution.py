@@ -10,7 +10,7 @@ Top-right quadrant: row < half, col >= half.
 Bottom-left quadrant: row >= half, col < half.
 """
 import numpy as np
-from typing import Tuple
+from typing import Optional, Tuple
 
 
 class CheesePlacementDistribution:
@@ -24,7 +24,7 @@ class CheesePlacementDistribution:
 
     VALID_MODES = ("corner_biased", "uniform", "anti_corner")
 
-    def __init__(self, mode: str, grid_size: int = 15, seed: int = None):
+    def __init__(self, mode: str, grid_size: int = 15, seed: Optional[int] = None):
         if mode not in self.VALID_MODES:
             raise ValueError(f"Unknown mode '{mode}'. Valid: {self.VALID_MODES}")
         self.mode = mode
