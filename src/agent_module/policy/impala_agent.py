@@ -40,6 +40,7 @@ class ImpalaAgent(BaseAgent):
             ) from e
 
         self._model = load_policy(checkpoint_path, device=self._device)
+        assert self._model is not None
         self._model.eval()
 
     def act(self, obs: np.ndarray) -> int:

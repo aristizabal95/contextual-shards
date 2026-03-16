@@ -53,9 +53,10 @@ def run_causal_tracing(
         return {}
 
     from src.causal_module.tracing.causal_tracer import CausalTracer
-    import numpy as np
 
     # Config-like objects (would use Hydra in production)
+    _ckpt = checkpoint_path
+
     class Cfg:
         class environment:
             name = "maze"
@@ -64,7 +65,7 @@ def run_causal_tracing(
             distribution_mode = "easy"
         class agent:
             name = "impala"
-            checkpoint_path = checkpoint_path
+            checkpoint_path = _ckpt
             layer_names = LAYER_NAMES
 
     cfg = Cfg()
@@ -74,7 +75,7 @@ def run_causal_tracing(
 
     causal_effects = {layer: [] for layer in LAYER_NAMES}
 
-    for trial in range(n_trials):
+    for _ in range(n_trials):
         obs_clean = env.reset()
         cheese_pos = env.cheese_pos()
         agent_pos = env.agent_pos()

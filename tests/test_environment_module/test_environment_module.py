@@ -24,7 +24,7 @@ def test_register_env_decorator():
         def reset(self):
             return None
 
-        def step(self, action):
+        def step(self, _action):
             return None, 0.0, False, {}
 
         def cheese_pos(self):

@@ -1,5 +1,5 @@
 """MiniGridEnv — wraps gymnasium + minigrid for Exp 5 generalization."""
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Tuple
 
 import numpy as np
 
@@ -18,7 +18,7 @@ class MiniGridEnv(BaseEnv):
     def __init__(self, cfg: Any) -> None:
         try:
             import gymnasium as gym  # type: ignore[import]
-            import minigrid  # noqa: F401  # type: ignore[import]
+            import minigrid as _minigrid  # noqa: F401  # type: ignore[import]
         except ImportError as e:
             raise ImportError(
                 "gymnasium and minigrid must be installed for MiniGridEnv."

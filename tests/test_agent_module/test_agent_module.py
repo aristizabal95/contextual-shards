@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 import torch
 import torch.nn as nn
@@ -20,7 +19,7 @@ def test_agent_factory_returns_class():
 def test_register_agent_decorator():
     @register_agent("mock_agent_test")
     class MockAgent(BaseAgent):
-        def act(self, obs):
+        def act(self, _obs):
             return 0
 
         def load(self, checkpoint_path):
