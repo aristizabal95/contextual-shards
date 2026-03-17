@@ -37,13 +37,6 @@ def run_causal_tracing(
     """
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    try:
-        from src.agent_module import AgentFactory
-        from src.environment_module import EnvFactory
-    except ImportError as e:
-        logger.error(f"Environment/agent imports failed: {e}")
-        raise
-
     # These will fail gracefully if procgen is not installed
     try:
         import procgen  # noqa: F401
@@ -51,6 +44,13 @@ def run_causal_tracing(
         print("procgen not installed. Causal tracing requires Python 3.10 environment.")
         print("See plan/2026-03-16-contextual-shards.md for setup instructions.")
         return {}
+
+    try:
+        from src.agent_module.policy.impala_agent import ImpalaAgent
+        from src.environment_module.maze.maze_env import ProcgenMazeEnv
+    except ImportError as e:
+        logger.error(f"Environment/agent imports failed: {e}")
+        raise
 
     from src.causal_module.tracing.causal_tracer import CausalTracer
 
@@ -69,13 +69,18 @@ def run_causal_tracing(
             layer_names = LAYER_NAMES
 
     cfg = Cfg()
-    env = EnvFactory("maze")(cfg)
-    agent = AgentFactory("impala")(cfg)
+    env = ProcgenMazeEnv(cfg)
+    agent = ImpalaAgent(cfg)
     tracer = CausalTracer(agent, LAYER_NAMES)
 
     causal_effects = {layer: [] for layer in LAYER_NAMES}
+    trials_collected = 0
+    max_attempts = n_trials * 10  # bound total resets
 
-    for _ in range(n_trials):
+    for _ in range(max_attempts):
+        if trials_collected >= n_trials:
+            break
+
         obs_clean = env.reset()
         cheese_pos = env.cheese_pos()
         agent_pos = env.agent_pos()
@@ -83,10 +88,15 @@ def run_causal_tracing(
         if dist > near_threshold:
             continue
 
+        # Corrupted observation: same maze layout and agent position, cheese removed.
+        # This is a minimal intervention — eliminates noise from unrelated maze changes.
+        obs_corrupted = env.get_obs_no_cheese()
+
         action_clean = agent.act(obs_clean)
-        effects = tracer.trace(obs_clean, obs_clean, target_action_idx=action_clean)
+        effects = tracer.trace(obs_clean, obs_corrupted, target_action_idx=action_clean)
         for layer, eff in effects.items():
             causal_effects[layer].append(eff)
+        trials_collected += 1
 
     mean_effects = {
         layer: float(sum(v) / len(v)) if v else 0.0

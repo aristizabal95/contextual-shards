@@ -65,7 +65,7 @@ class CausalTracer:
                 results[layer] = 0.0
                 continue
 
-            restore_patch = self.patcher.make_restore_patch(clean_act.unsqueeze(0))
+            restore_patch = self.patcher.make_restore_patch(clean_act)
             with self.patcher.patch_layer(layer, restore_patch):
                 restored_prob = float(
                     self.agent.get_action_probs(corrupted_obs)[target_action_idx]

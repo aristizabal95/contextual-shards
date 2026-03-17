@@ -1,6 +1,24 @@
+import os
+
 import numpy as np
 from typing import Dict, List
 from src.probe_module import ProbeFactory
+
+
+def _ram_mb() -> str:
+    try:
+        import psutil
+        proc = psutil.Process(os.getpid())
+        rss_mb = proc.memory_info().rss / 1024 ** 2
+        avail_mb = psutil.virtual_memory().available / 1024 ** 2
+        return f"RSS={rss_mb:.0f} MB  avail={avail_mb:.0f} MB"
+    except ImportError:
+        try:
+            with open("/proc/meminfo") as f:
+                lines = {l.split(":")[0]: int(l.split()[1]) for l in f if ":" in l}
+            return f"avail={lines.get('MemAvailable', 0) // 1024} MB"
+        except Exception:
+            return "(RAM unavailable)"
 
 
 class ProbeEvaluator:
@@ -33,22 +51,38 @@ class ProbeEvaluator:
             dict with in_context_acc, in_context_std, out_context_acc
         """
         n_trials = n_trials or self.n_trials
-        X_in, y_in = X[context_mask], y[context_mask]
-        X_out, y_out = X[~context_mask], y[~context_mask]
+        print(f"    [EVAL] X shape={X.shape} n_in={context_mask.sum()} n_out={(~context_mask).sum()} — {_ram_mb()}")
 
         in_accs: List[float] = []
         out_accs: List[float] = []
 
-        for _ in range(n_trials):
-            if len(X_in) < 4:
-                break
-            idx = np.random.permutation(len(X_in))
-            split = max(2, int(0.8 * len(idx)))
+        for trial_i in range(n_trials):
+            # Train on a random 80% split of ALL data so both classes are always present.
+            # context_mask is derived from the same signal as y, so X_in contains only
+            # positive labels and X_out only negative labels — training on either subset
+            # alone produces a single-class training set.
+            print(f"    [EVAL] trial {trial_i + 1}/{n_trials} fitting probe — {_ram_mb()}")
+            idx = np.random.permutation(len(X))
+            split = max(4, int(0.8 * len(idx)))
+            train_idx, test_idx = idx[:split], idx[split:]
+
+            if len(np.unique(y[train_idx])) < 2:
+                print(f"    [EVAL] trial {trial_i + 1}/{n_trials} skipped: single class in train split")
+                continue
+
             probe = ProbeFactory(self.probe_name)()
-            probe.fit(X_in[idx[:split]], y_in[idx[:split]])
-            in_accs.append(probe.score(X_in[idx[split:]], y_in[idx[split:]]))
-            if len(X_out) >= 2:
-                out_accs.append(probe.score(X_out, y_out))
+            probe.fit(X[train_idx], y[train_idx])
+            print(f"    [EVAL] trial {trial_i + 1}/{n_trials} scoring — {_ram_mb()}")
+
+            # Evaluate separately on in-context and out-of-context TEST samples
+            in_test = test_idx[context_mask[test_idx]]
+            out_test = test_idx[~context_mask[test_idx]]
+
+            if len(in_test) >= 2:
+                in_accs.append(probe.score(X[in_test], y[in_test]))
+            if len(out_test) >= 2:
+                out_accs.append(probe.score(X[out_test], y[out_test]))
+            print(f"    [EVAL] trial {trial_i + 1}/{n_trials} done — {_ram_mb()}")
 
         return {
             "in_context_acc": float(np.mean(in_accs)) if in_accs else float("nan"),

@@ -2,7 +2,7 @@
 
 Requires procgen-tools (Python 3.10). Gracefully raises ImportError if unavailable.
 """
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -72,8 +72,29 @@ class ImpalaAgent(BaseAgent):
             dist, _value = self._model(obs_t)
             return int(dist.logits.argmax(dim=-1).item())
 
+    def get_action_probs(self, obs: np.ndarray) -> np.ndarray:
+        """Alias for action_probs — satisfies AgentProtocol."""
+        return self.action_probs(obs)
+
+    def act_with_activations(
+        self, obs: np.ndarray
+    ) -> Tuple[int, Dict[str, torch.Tensor]]:
+        """Return (action, activations_dict) — satisfies AgentProtocol."""
+        from src.agent_module.hooks.activation_hooks import ActivationRecorder
+        if self._model is None:
+            raise RuntimeError("Model not loaded.")
+        recorder = ActivationRecorder(self._model, self._layer_names)
+        with recorder.record() as activations:
+            action = self.act(obs)
+        return action, dict(activations)
+
     @property
     def model(self) -> Optional[nn.Module]:
+        return self._model
+
+    @property
+    def policy(self) -> Optional[nn.Module]:
+        """Alias for model — satisfies AgentProtocol."""
         return self._model
 
     @property

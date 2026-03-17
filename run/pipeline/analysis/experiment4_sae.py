@@ -19,6 +19,8 @@ import logging
 import os
 from pathlib import Path
 
+import numpy as np
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,6 +42,9 @@ def run_sae_analysis(
     from src.probe_module.probe.linear_probe import LinearProbe
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
+    # probing_path is accepted for CLI consistency but probes are re-trained from
+    # activations to ensure the correlation is measured on held-out data.
+    _ = probing_path
 
     if not os.path.exists(sae_path):
         raise FileNotFoundError(f"SAE checkpoint not found: {sae_path}\nRun train_sae.py first.")
@@ -74,20 +79,32 @@ def run_sae_analysis(
     profiles = analyzer.compute_context_profiles(acts_flat, labels)
     top_features = analyzer.top_features_per_concept(profiles, top_k=top_k)
 
-    # Train probes to get probe predictions for correlation
-    logger.info("Training probes to get predictions for correlation")
+    # Train probes on a held-out split so SAE-probe correlation is measured out-of-sample.
+    # In-sample predictions inflate correlation because any feature correlated with the true
+    # label will spuriously match an over-fit probe.
+    logger.info("Training probes (80/20 split) to get held-out predictions for correlation")
+    rng = np.random.default_rng(42)
+    n_total = len(acts_flat)
+    perm = rng.permutation(n_total)
+    train_n = int(0.8 * n_total)
+    train_idx, test_idx = perm[:train_n], perm[train_n:]
+    acts_test = acts_flat[test_idx]
+
     probe_predictions: dict = {}
     for concept, concept_labels in labels.items():
         y = (concept_labels > 0.5).astype(float)
         if y.mean() < 0.01 or y.mean() > 0.99:
             continue
+        if len(np.unique(y[train_idx])) < 2:
+            logger.warning(f"Skipping probe for '{concept}': single class in train split")
+            continue
         probe = LinearProbe()
-        probe.fit(acts_flat, y)
-        probe_predictions[concept] = probe.predict(acts_flat)
+        probe.fit(acts_flat[train_idx], y[train_idx])
+        probe_predictions[concept] = probe.predict(acts_test)
 
-    # Find SAE features that correlate with probe predictions
-    logger.info(f"Finding SAE features with |r| >= {r_threshold}")
-    matching = analyzer.find_matching_features(acts_flat, probe_predictions, r_threshold=r_threshold)
+    # Find SAE features that correlate with held-out probe predictions
+    logger.info(f"Finding SAE features with |r| >= {r_threshold} on held-out test set")
+    matching = analyzer.find_matching_features(acts_test, probe_predictions, r_threshold=r_threshold)
 
     results = {
         "layer": layer,

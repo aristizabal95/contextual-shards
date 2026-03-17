@@ -37,6 +37,26 @@ REINFORCEMENT_FREQS = {
 CORNER_LAYER = "embedder.fc"   # layer to read corner shard strength from
 
 
+def load_corner_layer(causal_dir: str, agent_name: str) -> str:
+    """Return the corner shard layer from per-agent Exp1 candidates, or fall back to default."""
+    for fname in (
+        f"experiment1_candidates_{agent_name}.json",
+        "experiment1_candidates.json",
+    ):
+        path = os.path.join(causal_dir, fname)
+        if not os.path.exists(path):
+            continue
+        with open(path) as f:
+            candidates = json.load(f)
+        for concept_key in ("corner_proximity", "corner"):
+            if concept_key in candidates and candidates[concept_key]:
+                detected = candidates[concept_key][0]["layer"]
+                logger.info(f"[{agent_name}] Using corner layer '{detected}' from {fname}")
+                return detected
+    logger.warning(f"[{agent_name}] No candidates file found; using default layer '{CORNER_LAYER}'")
+    return CORNER_LAYER
+
+
 def load_corner_strength(causal_path: str, layer: str = CORNER_LAYER) -> float:
     """Extract corner shard causal effect from an experiment1_causal.json file."""
     with open(causal_path) as f:
@@ -67,7 +87,8 @@ def run_correlation(
         if not os.path.exists(path):
             missing.append(path)
             continue
-        strength = load_corner_strength(path, layer)
+        agent_layer = load_corner_layer(causal_dir, name) if layer == CORNER_LAYER else layer
+        strength = load_corner_strength(path, agent_layer)
         freq = REINFORCEMENT_FREQS.get(name, 0.0)
         freqs.append(freq)
         strengths.append(strength)

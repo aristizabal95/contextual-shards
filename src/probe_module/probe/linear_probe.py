@@ -14,6 +14,10 @@ class LinearProbe(BaseProbe):
         self._clf = LogisticRegression(C=C, max_iter=max_iter, class_weight="balanced")
 
     def _flatten(self, X: np.ndarray) -> np.ndarray:
+        if X.ndim > 2:
+            # Global average pool over spatial dims: (N, C, H, W, ...) -> (N, C)
+            # Full spatial flatten is infeasible for conv layers (e.g. 16×32×32 = 16384 features)
+            return X.reshape(len(X), X.shape[1], -1).mean(axis=-1)
         return X.reshape(len(X), -1)
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:

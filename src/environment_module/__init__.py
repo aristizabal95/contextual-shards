@@ -1,14 +1,16 @@
 import os
-from typing import Dict, Type
+from typing import Dict, Type, TypeVar
 
 from src.environment_module.base_env import BaseEnv
 from src.utils.auto_import import import_modules
 
 ENV_FACTORY: Dict[str, Type[BaseEnv]] = {}
 
+_T_Env = TypeVar("_T_Env", bound=BaseEnv)
+
 
 def register_env(name: str):
-    def decorator(cls: Type[BaseEnv]):
+    def decorator(cls: Type[_T_Env]) -> Type[_T_Env]:
         ENV_FACTORY[name] = cls
         return cls
     return decorator

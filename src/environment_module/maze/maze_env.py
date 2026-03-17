@@ -68,6 +68,23 @@ class ProcgenMazeEnv(BaseEnv):
             return (0, 0)
         return int(positions[0][0]), int(positions[0][1])
 
+    def get_obs_no_cheese(self) -> np.ndarray:
+        """Return an observation identical to the current state but with cheese removed.
+
+        Maze layout and agent position are preserved; only the cheese cell is set to
+        EMPTY. This produces a minimal, low-noise corrupted observation suitable for
+        causal tracing experiments.
+        """
+        try:
+            from procgen_tools import maze  # type: ignore[import]
+        except ImportError as e:
+            raise ImportError("procgen-tools required for cheese manipulation.") from e
+
+        tmp_venv = maze.copy_venv(self._venv, 0)
+        maze.remove_cheese(tmp_venv, 0)
+        obs = tmp_venv.reset()  # (1, C, H, W) — reset respects prior set_state call
+        return obs[0].astype(np.float32)
+
     @property
     def venv(self) -> Any:
         """Expose the underlying venv for procgen-tools utilities."""

@@ -1,14 +1,16 @@
 import os
-from typing import Dict, Type
+from typing import Dict, Type, TypeVar
 
 from src.agent_module.base_agent import BaseAgent
 from src.utils.auto_import import import_modules
 
 AGENT_FACTORY: Dict[str, Type[BaseAgent]] = {}
 
+_T_Agent = TypeVar("_T_Agent", bound=BaseAgent)
+
 
 def register_agent(name: str):
-    def decorator(cls: Type[BaseAgent]):
+    def decorator(cls: Type[_T_Agent]) -> Type[_T_Agent]:
         AGENT_FACTORY[name] = cls
         return cls
     return decorator
