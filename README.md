@@ -38,7 +38,7 @@ Place the pretrained IMPALA checkpoint at:
 data/raw/maze_policy.pt
 ```
 
-You can find the pretrained checkpoint used for this project at (this link)[https://drive.google.com/drive/folders/1atPaaA6Sr6cscBnihB_pdAEeeAp02REM]. We used `model_rand_region_5.pth`
+You can find the pretrained checkpoint used for this project at [this link](https://drive.google.com/drive/folders/1atPaaA6Sr6cscBnihB_pdAEeeAp02REM). We used `model_rand_region_5.pth`
 
 ### Verify installation
 
